@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <algorithm>
+#include <string>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -13,44 +14,75 @@
 
 WafGhc::WafGhc() {}
 
-void WafGhc::printManual() {
+std::string getServerIPAddress()
+{
+    std::string command = "hostname -I | awk '{print $1}'";
+    char buffer[128];
+    std::string ipAddress;
+    FILE *pipe = popen(command.c_str(), "r");
+    if (pipe)
+    {
+        if (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+        {
+            ipAddress = buffer;
+        }
+        pclose(pipe);
+    }
+    ipAddress.erase(ipAddress.find_last_not_of(" \n\r\t") + 1);
+    return ipAddress.empty() ? "Unknown" : ipAddress;
+}
+void WafGhc::printManual()
+{
     std::cout << GREEN << "Hello dear user, this is the WAF interface controller.\n"
-        << "Enter any command for managing your interface easily.\n\n"
-        << RESET
-        << CYAN << "Commands:\n"
-        << RESET
-        << "--version  : Info about the version of the current interface\n"
-        << "--pass     : Change your password (currently not implemented)\n"
-        << "--check    : Check the current status of the WAF interface\n";
+              << "Enter any command for managing your interface easily.\n\n"
+              << RESET
+              << CYAN << "Commands:\n"
+              << RESET
+              << "--version  : Info about the version of the current interface\n"
+              << "--pass     : Change your password (currently not implemented)\n"
+              << "--check    : Check the current status of the WAF interface\n"
+              << "--unistall : Unistall this software from your server.\n";
 }
 
-void WafGhc::showVersion() {
-    std::cout << GREEN << "WAF Interface Controller Version 0.0.1 dev \n" << RESET;
+void WafGhc::showVersion()
+{
+    std::cout << GREEN << "WAF Interface Controller Version 0.0.1 dev \n"
+              << RESET;
 }
 
-void WafGhc::changePassword() {
-    std::cout << YELLOW << "Password change in this version is not yet implemented.\n" << RESET;
+void WafGhc::changePassword()
+{
+    std::cout << YELLOW << "Password change in this version is not yet implemented.\n"
+              << RESET;
 }
 
-void WafGhc::executeCheck(const std::string& description, const std::string& command) {
+void WafGhc::executeCheck(const std::string &description, const std::string &command)
+{
     std::cout << CYAN << description << RESET << "\n";
     int result = std::system(command.c_str());
-    if (result == 0) {
-        std::cout << GREEN << "Success\n" << RESET;
+    if (result == 0)
+    {
+        std::cout << GREEN << "Success\n"
+                  << RESET;
     }
-    else {
-        std::cout << RED << "Failure\n" << RESET;
+    else
+    {
+        std::cout << RED << "Failure\n"
+                  << RESET;
     }
 }
 
-bool WafGhc::fileExists(const std::string& path) {
+bool WafGhc::fileExists(const std::string &path)
+{
     std::ifstream file(path);
     return file.good();
 }
 
-std::string WafGhc::extractJsonValue(const std::string& jsonContent, const std::string& key) {
+std::string WafGhc::extractJsonValue(const std::string &jsonContent, const std::string &key)
+{
     size_t keyPos = jsonContent.find("\"" + key + "\"");
-    if (keyPos == std::string::npos) {
+    if (keyPos == std::string::npos)
+    {
         return "";
     }
 
@@ -58,15 +90,18 @@ std::string WafGhc::extractJsonValue(const std::string& jsonContent, const std::
     size_t startQuote = jsonContent.find("\"", colonPos);
     size_t endQuote = jsonContent.find("\"", startQuote + 1);
 
-    if (startQuote != std::string::npos && endQuote != std::string::npos) {
+    if (startQuote != std::string::npos && endQuote != std::string::npos)
+    {
         return jsonContent.substr(startQuote + 1, endQuote - startQuote - 1);
     }
 
     return "";
 }
 
-bool WafGhc::validateAndReadConfig(const std::string& path, std::string& httpAddress, std::string& websocketAddress) {
-    if (!fileExists(path)) {
+bool WafGhc::validateAndReadConfig(const std::string &path, std::string &httpAddress, std::string &websocketAddress)
+{
+    if (!fileExists(path))
+    {
         std::cout << RED << "Configuration file not found: " << path << RESET << "\n";
         return false;
     }
@@ -77,33 +112,42 @@ bool WafGhc::validateAndReadConfig(const std::string& path, std::string& httpAdd
     httpAddress = extractJsonValue(content, "http_address");
     websocketAddress = extractJsonValue(content, "websocket_address");
 
-    if (httpAddress.empty() || websocketAddress.empty()) {
+    if (httpAddress.empty() || websocketAddress.empty())
+    {
         std::cout << RED << "Invalid or incomplete configuration file." << RESET << "\n";
         return false;
     }
 
-    std::cout << GREEN << "Configuration file is valid.\n" << RESET;
+    std::cout << GREEN << "Configuration file is valid.\n"
+              << RESET;
     return true;
 }
 
-void WafGhc::checkBackendAccessibility(const std::string& httpAddress, const std::string& websocketAddress) {
+void WafGhc::checkBackendAccessibility(const std::string &httpAddress, const std::string &websocketAddress)
+{
     executeCheck("Checking backend HTTP accessibility...", "curl --head --silent --fail " + httpAddress);
     executeCheck("Checking backend WebSocket accessibility...", "curl --silent --fail " + websocketAddress);
 }
 
-void WafGhc::checkApacheConfigs(const std::vector<std::string>& configPaths) {
-    for (const auto& path : configPaths) {
-        if (fileExists(path)) {
+void WafGhc::checkApacheConfigs(const std::vector<std::string> &configPaths)
+{
+    for (const auto &path : configPaths)
+    {
+        if (fileExists(path))
+        {
             std::cout << GREEN << "Apache configuration file exists: " << path << RESET << "\n";
         }
-        else {
+        else
+        {
             std::cout << RED << "Apache configuration file missing: " << path << RESET << "\n";
         }
     }
 }
 
-void WafGhc::checkApachePorts(const std::string& portsConfPath, const std::vector<int>& ports) {
-    if (!fileExists(portsConfPath)) {
+void WafGhc::checkApachePorts(const std::string &portsConfPath, const std::vector<int> &ports)
+{
+    if (!fileExists(portsConfPath))
+    {
         std::cout << RED << "Apache ports configuration file not found: " << portsConfPath << RESET << "\n";
         return;
     }
@@ -111,17 +155,23 @@ void WafGhc::checkApachePorts(const std::string& portsConfPath, const std::vecto
     std::ifstream file(portsConfPath);
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    for (const auto& port : ports) {
-        if (content.find("Listen " + std::to_string(port)) != std::string::npos) {
-            std::cout << GREEN << "Port " << port << " is configured in Apache.\n" << RESET;
+    for (const auto &port : ports)
+    {
+        if (content.find("Listen " + std::to_string(port)) != std::string::npos)
+        {
+            std::cout << GREEN << "Port " << port << " is configured in Apache.\n"
+                      << RESET;
         }
-        else {
-            std::cout << RED << "Port " << port << " is NOT configured in Apache.\n" << RESET;
+        else
+        {
+            std::cout << RED << "Port " << port << " is NOT configured in Apache.\n"
+                      << RESET;
         }
     }
 }
 
-void WafGhc::checkStatus() {
+void WafGhc::checkStatus()
+{
     executeCheck("Checking Python installation...", "python3 --version");
     executeCheck("Checking pip installation...", "python3 -m pip --version");
     executeCheck("Checking Apache status...", "systemctl is-active --quiet apache2");
@@ -133,22 +183,117 @@ void WafGhc::checkStatus() {
 
     std::string configPath = "waf/waf-ghf/assets/assets/config.json";
     std::string httpAddress, websocketAddress;
-    if (validateAndReadConfig(configPath, httpAddress, websocketAddress)) {
+    if (validateAndReadConfig(configPath, httpAddress, websocketAddress))
+    {
         checkBackendAccessibility(httpAddress, websocketAddress);
     }
 
     std::vector<std::string> apacheConfigPaths = {
         "/etc/apache2/sites-available/waf-ghf_project.conf",
-        "/etc/apache2/sites-available/waf-ghb_project.conf"
-    };
+        "/etc/apache2/sites-available/waf-ghb_project.conf"};
     checkApacheConfigs(apacheConfigPaths);
 
     std::string apachePortsConf = "/etc/apache2/ports.conf";
-    std::vector<int> ports = { 8081, 6234 };
+    std::vector<int> ports = {8081, 6234};
     checkApachePorts(apachePortsConf, ports);
 
-    std::cout << CYAN << "\nAccess Details:\n" << RESET;
+    std::string serverIP = getServerIPAddress();
+
+    std::cout << CYAN << "\nAccess Details:\n"
+              << RESET;
     std::cout << GREEN << "HTTP Address: " << httpAddress << RESET << "\n";
     std::cout << GREEN << "WebSocket Address: " << websocketAddress << RESET << "\n";
-    std::cout << GREEN << "Frontend Interface: https://<your-server-ip>:6234\n" << RESET;
+    std::cout << GREEN << "Frontend Interface: https://" << serverIP << ":6234\n"
+              << RESET;
+}
+void WafGhc::unistall()
+{
+    try
+    {
+        const std::string apache_config_ghf = "/etc/apache2/sites-available/waf-ghf_project.conf";
+        const std::string apache_config_ghb = "/etc/apache2/sites-available/waf-ghb_project.conf";
+        const std::string apache_sites_command = "sudo a2dissite waf-ghf_project.conf waf-ghb_project.conf";
+
+        std::cout << CYAN << "Disabling Apache site configurations..." << RESET << std::endl;
+        if (system(("test -f " + apache_config_ghf).c_str()) == 0)
+        {
+            system(("rm " + apache_config_ghf).c_str());
+            std::cout << GREEN << "Removed: " << apache_config_ghf << RESET << std::endl;
+        }
+        if (system(("test -f " + apache_config_ghb).c_str()) == 0)
+        {
+            system(("rm " + apache_config_ghb).c_str());
+            std::cout << GREEN << "Removed: " << apache_config_ghb << RESET << std::endl;
+        }
+        system(apache_sites_command.c_str());
+        system("sudo systemctl reload apache2");
+        const std::string ssl_cert = "/etc/ssl/private/waf-gh-self-signed.crt";
+        const std::string ssl_key = "/etc/ssl/private/waf-gh-self-signed.key";
+
+        std::cout << CYAN << "Removing SSL certificates..." << RESET << std::endl;
+        if (system(("test -f " + ssl_cert).c_str()) == 0)
+        {
+            system(("rm " + ssl_cert).c_str());
+            std::cout << GREEN << "Removed: " << ssl_cert << RESET << std::endl;
+        }
+        if (system(("test -f " + ssl_key).c_str()) == 0)
+        {
+            system(("rm " + ssl_key).c_str());
+            std::cout << GREEN << "Removed: " << ssl_key << RESET << std::endl;
+        }
+
+        const std::string service_file = "/etc/systemd/system/waf-ghb-backend.service";
+        const std::string socket_file = "/etc/systemd/system/waf-ghb-backend.socket";
+
+        std::cout << CYAN << "Stopping and disabling backend service and socket..." << RESET << std::endl;
+        system("sudo systemctl stop waf-ghb-backend.service");
+        system("sudo systemctl disable waf-ghb-backend.service");
+        system("sudo systemctl stop waf-ghb-backend.socket");
+        system("sudo systemctl disable waf-ghb-backend.socket");
+
+        if (system(("test -f " + service_file).c_str()) == 0)
+        {
+            system(("rm " + service_file).c_str());
+            std::cout << GREEN << "Removed: " << service_file << RESET << std::endl;
+        }
+        if (system(("test -f " + socket_file).c_str()) == 0)
+        {
+            system(("rm " + socket_file).c_str());
+            std::cout << GREEN << "Removed: " << socket_file << RESET << std::endl;
+        }
+
+        char user_choice;
+        std::cout << YELLOW << "Do you want to delete the project directories? (y/n): " << RESET;
+        std::cin >> user_choice;
+
+        if (user_choice == 'y' || user_choice == 'Y')
+        {
+            const std::string project_dir = "/home/test/waf-interface/";
+            const std::vector<std::string> folders_to_remove = {
+                "waf-ghb", "waf-ghf", "waf-ghc"};
+
+            std::cout << CYAN << "Removing project directories..." << RESET << std::endl;
+            for (const auto &folder : folders_to_remove)
+            {
+                std::string full_path = project_dir + folder;
+                if (system(("test -d " + full_path).c_str()) == 0)
+                {
+                    system(("rm -rf " + full_path).c_str());
+                    std::cout << GREEN << "Removed: " << full_path << RESET << std::endl;
+                }
+            }
+        }
+        else
+        {
+            std::cout << RED << "Project directories were not removed." << RESET << std::endl;
+        }
+        std::cout << CYAN << "Reloading systemd daemon..." << RESET << std::endl;
+        system("sudo systemctl daemon-reload");
+
+        std::cout << GREEN << "Uninstallation of waf-ghf project completed successfully." << RESET << std::endl;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << RED << "Error during uninstallation: " << e.what() << RESET << std::endl;
+    }
 }
