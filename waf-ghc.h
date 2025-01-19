@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-class WafGhc {
+class WafGhc
+{
 public:
-    // Constructor
     WafGhc();
 
     void printManual();
@@ -15,21 +15,23 @@ public:
 
     void changePassword();
 
-    bool fileExists(const std::string& path);
+    bool fileExists(const std::string &path);
 
-    void executeCheck(const std::string& description, const std::string& command);
+    void executeCheck(const std::string &description, const std::string &command);
 
-    std::string extractJsonValue(const std::string& jsonContent, const std::string& key);
+    std::string extractJsonValue(const std::string &jsonContent, const std::string &key);
 
-    bool validateAndReadConfig(const std::string& path, std::string& httpAddress, std::string& websocketAddress);
+    bool validateAndReadConfig(const std::string &path, std::string &httpAddress, std::string &websocketAddress);
 
-    void checkBackendAccessibility(const std::string& httpAddress, const std::string& websocketAddress);
+    void checkBackendAccessibility(const std::string &httpAddress, const std::string &websocketAddress);
 
-    void checkApacheConfigs(const std::vector<std::string>& configPaths);
+    void checkApacheConfigs(const std::vector<std::string> &configPaths);
 
-    void checkApachePorts(const std::string& portsConfPath, const std::vector<int>& ports);
+    void checkApachePorts(const std::string &portsConfPath, const std::vector<int> &ports);
 
     void checkStatus();
+
+    void unistall();
 };
 
 #endif // WAF_GHC_H
