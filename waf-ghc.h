@@ -29,7 +29,10 @@ public:
 
     void checkApachePorts(const std::string &portsConfPath, const std::vector<int> &ports);
 
+    int extractPortFromApacheConfig(const std::string &configPath);
+
     void checkStatus();
+    void extractPortFromApacheConfig();
 
     void unistall();
 };
