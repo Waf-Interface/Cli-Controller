@@ -32,6 +32,7 @@ public:
     int extractPortFromApacheConfig(const std::string &configPath);
 
     void checkStatus();
+
     void extractPortFromApacheConfig();
 
     void unistall();
