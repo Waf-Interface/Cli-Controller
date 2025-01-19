@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <string>
+#include <regex>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -170,6 +171,39 @@ void WafGhc::checkApachePorts(const std::string &portsConfPath, const std::vecto
     }
 }
 
+int WafGhc::extractPortFromApacheConfig(const std::string &configPath)
+{
+    std::ifstream file(configPath);
+    if (!file.is_open())
+    {
+        std::cerr << RED << "Error: Unable to open Apache configuration file: " << configPath << RESET << std::endl;
+        return -1;
+    }
+
+    std::string line;
+    std::regex virtualHostRegex(R"(<VirtualHost \*:(\d+)>)");
+    std::smatch match;
+
+    while (std::getline(file, line))
+    {
+        if (std::regex_search(line, match, virtualHostRegex) && match.size() > 1)
+        {
+            try
+            {
+                return std::stoi(match[1].str()); // Return the extracted port
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << RED << "Error: Failed to parse port number from configuration file: " << e.what() << RESET << std::endl;
+                return -1;
+            }
+        }
+    }
+
+    std::cerr << RED << "Error: No <VirtualHost> directive with a port found in configuration file: " << configPath << RESET << std::endl;
+    return -1;
+}
+
 void WafGhc::checkStatus()
 {
     executeCheck("Checking Python installation...", "python3 --version");
@@ -187,25 +221,29 @@ void WafGhc::checkStatus()
     {
         checkBackendAccessibility(httpAddress, websocketAddress);
     }
-
     std::vector<std::string> apacheConfigPaths = {
         "/etc/apache2/sites-available/waf-ghf_project.conf",
         "/etc/apache2/sites-available/waf-ghb_project.conf"};
     checkApacheConfigs(apacheConfigPaths);
-
-    std::string apachePortsConf = "/etc/apache2/ports.conf";
-    std::vector<int> ports = {8081, 6234};
-    checkApachePorts(apachePortsConf, ports);
+    
+    int frontendPort = extractPortFromApacheConfig("/etc/apache2/sites-available/waf-ghf_project.conf");
 
     std::string serverIP = getServerIPAddress();
 
-    std::cout << CYAN << "\nAccess Details:\n"
-              << RESET;
+    std::cout << CYAN << "\nAccess Details:\n" << RESET;
     std::cout << GREEN << "HTTP Address: " << httpAddress << RESET << "\n";
     std::cout << GREEN << "WebSocket Address: " << websocketAddress << RESET << "\n";
-    std::cout << GREEN << "Frontend Interface: https://" << serverIP << ":6234\n"
-              << RESET;
+
+    if (frontendPort > 0)
+    {
+        std::cout << GREEN << "Frontend Interface: https://" << serverIP << ":" << frontendPort << "\n" << RESET;
+    }
+    else
+    {
+        std::cout << RED << "Frontend Interface: Unable to determine the port from the Apache configuration.\n" << RESET;
+    }
 }
+
 void WafGhc::unistall()
 {
     try
@@ -243,23 +281,15 @@ void WafGhc::unistall()
         }
 
         const std::string service_file = "/etc/systemd/system/waf-ghb-backend.service";
-        const std::string socket_file = "/etc/systemd/system/waf-ghb-backend.socket";
-
+        
         std::cout << CYAN << "Stopping and disabling backend service and socket..." << RESET << std::endl;
         system("sudo systemctl stop waf-ghb-backend.service");
         system("sudo systemctl disable waf-ghb-backend.service");
-        system("sudo systemctl stop waf-ghb-backend.socket");
-        system("sudo systemctl disable waf-ghb-backend.socket");
 
         if (system(("test -f " + service_file).c_str()) == 0)
         {
             system(("rm " + service_file).c_str());
             std::cout << GREEN << "Removed: " << service_file << RESET << std::endl;
-        }
-        if (system(("test -f " + socket_file).c_str()) == 0)
-        {
-            system(("rm " + socket_file).c_str());
-            std::cout << GREEN << "Removed: " << socket_file << RESET << std::endl;
         }
 
         char user_choice;
