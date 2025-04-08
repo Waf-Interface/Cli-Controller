@@ -3,39 +3,31 @@
 
 #include <string>
 #include <vector>
+#include <sqlite3.h>
 
-class WafGhc
-{
+class WafGhc {
 public:
-    WafGhc();
-
     void printManual();
-
     void showVersion();
-
-    void changePassword();
-
-    bool fileExists(const std::string &path);
-
-    void executeCheck(const std::string &description, const std::string &command);
-
-    std::string extractJsonValue(const std::string &jsonContent, const std::string &key);
-
-    bool validateAndReadConfig(const std::string &path, std::string &httpAddress, std::string &websocketAddress);
-
-    void checkBackendAccessibility(const std::string &httpAddress, const std::string &websocketAddress);
-
-    void checkApacheConfigs(const std::vector<std::string> &configPaths);
-
-    void checkApachePorts(const std::string &portsConfPath, const std::vector<int> &ports);
-
-    int extractPortFromApacheConfig(const std::string &configPath);
-
     void checkStatus();
+    void uninstall();
     
-    void extractPortFromApacheConfig();
-
-    void unistall();
+    void addUser();
+    void removeUser();
+    void changeUserPassword();
+    
+private:
+    std::string getPasswordInput(const std::string& prompt, bool showAsterisk = true);
+    std::string getServerIPAddress();
+    bool executeSQL(const std::string& sql);
+    bool userExists(const std::string& username);
+    
+    bool checkServiceRunning(const std::string& service);
+    bool checkPortListening(int port);
+    std::string getApacheConfigPath();
+    std::string getNginxConfigPath();
+    std::string getBackendURL();
+    std::string getFrontendURL();
 };
 
 #endif // WAF_GHC_H
