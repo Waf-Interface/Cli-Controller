@@ -17,11 +17,6 @@ A CLI controller for the WAF interface, designed for checking and monitoring you
 - **`checkStatus()`**: Perform a comprehensive health check of the system.
 - **`uninstall()`**: Execute a complete cleanup of all components.
 
-### Integration
-- Seamlessly works with your Python installer’s structure.
-- Utilizes the same database location: `/opt/waf_interface/waf-ghb/users.db`.
-- Maintains consistent paths and configurations for ease of use.
-
 ---
 
 ## 🔧 Improvements
