@@ -1,10 +1,10 @@
-# 🌟 Cli-Controller 🌟
+#  Cli-Controller 
 **Version:** 1.0.0  
 A CLI controller for the WAF interface, designed for checking and monitoring your WAF interface.
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 ### User Management
 - **`addUser ()`**: Add new users with all required fields.
