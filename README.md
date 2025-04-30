@@ -28,14 +28,14 @@ A CLI controller for the WAF interface, designed for checking and monitoring you
 
 ---
 
-## 🔒 Security
+##  Security
 - **Password Masking**: Protect sensitive information.
 - **Confirmation Prompts**: Ensure user confirmation for destructive operations.
 - **Proper Permissions Handling**: Security standards.
 
 ---
 
-## 🛠️ How to Build Manually
+##  How to Build Manually
 To build the project, use the following command:
 ```bash
 g++ -std=c++17 -o waf-interface main.cpp waf-ghc.cpp -lsqlite3
