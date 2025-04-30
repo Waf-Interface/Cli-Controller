@@ -20,10 +20,10 @@ A CLI controller for the WAF interface, designed for checking and monitoring you
 ---
 
 ## 🔧 Improvements
-- Enhanced error handling for better reliability.
-- More robust SQL operations to ensure data integrity.
+- Error handling for better reliability.
+- More robust SQL operations to ensure data.
 - Color-coded output for improved readability.
-- Comprehensive status checks for system health.
+- Status checks for system health.
 - Safety checks implemented before uninstallation.
 
 ---
@@ -31,7 +31,7 @@ A CLI controller for the WAF interface, designed for checking and monitoring you
 ## 🔒 Security
 - **Password Masking**: Protect sensitive information.
 - **Confirmation Prompts**: Ensure user confirmation for destructive operations.
-- **Proper Permissions Handling**: Maintain security standards.
+- **Proper Permissions Handling**: Security standards.
 
 ---
 
